@@ -1,3 +1,47 @@
+__ Using this annotated version
+
+    All annotations begin with a line beginning with a double underscore
+    (__) and ending with a double period (..). This makes it easy to
+    find annotations.
+
+    Within annotations, the L: prefix is used to refer to a line number
+    e.g.  L:4 refers to line number 4. This makes it easy to build a
+    Table of Contents section.
+
+..
+__ Table of Contents
+
+    L:1     Comments
+    L:2       Source date
+    L:4       A blessing in place of a copyright
+    L:16      Features
+    L:31      Setup rules
+    L:82      Command-line Options
+    L:133     Security Features
+    L:173     Security Auditing
+    L:198     SCGI Specification Files
+    L:223     Basic Authorization
+
+    L:243   #include directives
+
+    L:271   Server configuration
+
+    L:284   Global variables, with comments
+
+    L:384   Function definitions
+
+    L:696   Error-Handling code
+    L:699     static void NotFound(int lineno)
+    L:715     static void Forbidden(int lineno)
+    L:731     static void NotAuthorized(const char *zRealm)
+    L:747     static void CgiError(void)
+    L:764     static void Timeout(int iSig)
+    L:782     static void CgiScriptWritable(void)
+    L:796     static void Malfunction(int linenum, const char *zFormat, ...)
+
+    L:2368  main()
+..
+
      1  /*
      2  ** 2001-09-15
      3  **
@@ -263,9 +307,30 @@
    263  #include <errno.h>
    264  #include <sys/resource.h>
    265  #include <signal.h>
+
    266  #ifdef linux
    267  #include <sys/sendfile.h>
    268  #endif
+
+__ 266-268
+
+The <sys/sendfile.h> is included in order to call sendfile().
+
+    ssize_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count);
+
+The sendfile() function is only available in Linux, hence the #ifdef
+conditional compilation directive.
+
+From the Linux Programmer's Manual (man 2 sendfile):
+
+    sendfile() copies data between one file descriptor and another.
+    Because this copy‐ ing is done within the kernel, sendfile() is more
+    efficient than the combination of read(2) and write(2), which would
+    require transferring data to and from user space.
+
+For non-Linux systems, the xferBytes() function is used, defined at L:1272.
+
+..
    269  #include <assert.h>
    270  
    271  /*
@@ -286,6 +351,38 @@
    286  ** saves having to pass information to subroutines as parameters, and
    287  ** makes the executable smaller...
    288  */
+
+__ Naming Convention
+
+    It appears that the variable names starting with 'z' have the type
+    'char *'.
+
+    To check if that's true:
+
+        cat -n althttpd.c \             # Print althttpd.c with line nums
+            | grep 'static char' \      #   include lines with 'static char'
+            | grep -v ' \*z'            #   and exclude ' *z'
+
+    Results in:
+
+        291	static char zTmpNamBuf[500];     /* Space to hold the temporary filename */
+        323	static char zReplyStatus[4];     /* Reply status code */
+        340	static char *default_path = "/bin:/usr/bin";  /* Default PATH variable */
+        508	static char *SafeMalloc( size_t size ){
+        616	static char *Rfc822Date(time_t t){
+        618	  static char zDate[100];
+
+    L:291 and L:323 are for statically allocated strings so they still conform.
+
+    L:340 DOES NOT CONFORM and it seems to be the only exception.
+
+    L:508 and L:616 are function declarations so that's fine.
+
+    L:618 conforms and it shows that local variable names also conform
+    to the naming convention.
+
+..
+
    289  static char *zRoot = 0;          /* Root directory of the website */
    290  static char *zTmpNam = 0;        /* Name of a temporary file */
    291  static char zTmpNamBuf[500];     /* Space to hold the temporary filename */
