@@ -311,8 +311,7 @@ __ Table of Contents
    266  #ifdef linux
    267  #include <sys/sendfile.h>
    268  #endif
-
-__ 266-268
+__ On including <sys/sendfile.h>
 
 The <sys/sendfile.h> is included in order to call sendfile().
 
@@ -331,6 +330,7 @@ From the Linux Programmer's Manual (man 2 sendfile):
 For non-Linux systems, the xferBytes() function is used, defined at L:1272.
 
 ..
+
    269  #include <assert.h>
    270  
    271  /*
@@ -345,44 +345,22 @@ For non-Linux systems, the xferBytes() function is used, defined at L:1272.
    280  #ifndef MAX_CPU
    281  #define MAX_CPU 30                /* Max CPU cycles in seconds */
    282  #endif
+__ To build the server
+
+    # Build the server
+    gcc -Os -o ~/bin/althttpd althttpd.c
+
+    # Usage
+    althttpd --root . --port 9000 &
+
+..
+
    283  
    284  /*
    285  ** We record most of the state information as global variables.  This
    286  ** saves having to pass information to subroutines as parameters, and
    287  ** makes the executable smaller...
    288  */
-
-__ Naming Convention
-
-    It appears that the variable names starting with 'z' have the type
-    'char *'.
-
-    To check if that's true:
-
-        cat -n althttpd.c \             # Print althttpd.c with line nums
-            | grep 'static char' \      #   include lines with 'static char'
-            | grep -v ' \*z'            #   and exclude ' *z'
-
-    Results in:
-
-        291	static char zTmpNamBuf[500];     /* Space to hold the temporary filename */
-        323	static char zReplyStatus[4];     /* Reply status code */
-        340	static char *default_path = "/bin:/usr/bin";  /* Default PATH variable */
-        508	static char *SafeMalloc( size_t size ){
-        616	static char *Rfc822Date(time_t t){
-        618	  static char zDate[100];
-
-    L:291 and L:323 are for statically allocated strings so they still conform.
-
-    L:340 DOES NOT CONFORM and it seems to be the only exception.
-
-    L:508 and L:616 are function declarations so that's fine.
-
-    L:618 conforms and it shows that local variable names also conform
-    to the naming convention.
-
-..
-
    289  static char *zRoot = 0;          /* Root directory of the website */
    290  static char *zTmpNam = 0;        /* Name of a temporary file */
    291  static char zTmpNamBuf[500];     /* Space to hold the temporary filename */
@@ -440,6 +418,75 @@ __ Naming Convention
    343  static int rangeEnd = 0;         /* End of a Range: request */
    344  static int maxCpu = MAX_CPU;     /* Maximum CPU time per process */
    345  
+
+__ Naming Convention for char * variables
+
+    It appears that the variable names starting with 'z' have the type
+    'char *'.
+
+    To check if that's true:
+
+        cat -n althttpd.c \             # Print althttpd.c with line nums
+            | grep 'static char' \      #   include lines with 'static char'
+            | grep -v ' \*z'            #   and exclude ' *z'
+
+    Results in:
+
+        291	static char zTmpNamBuf[500];     /* Space to hold the temporary filename */
+        323	static char zReplyStatus[4];     /* Reply status code */
+        340	static char *default_path = "/bin:/usr/bin";  /* Default PATH variable */
+        508	static char *SafeMalloc( size_t size ){
+        616	static char *Rfc822Date(time_t t){
+        618	  static char zDate[100];
+
+    L:291 and L:323 are for statically allocated strings so they still conform.
+
+    L:340 DOES NOT CONFORM and it seems to be the only exception.
+
+    L:508 and L:616 are function declarations so that's fine.
+
+    L:618 conforms and it shows that local variable names also conform
+    to the naming convention.
+
+..
+__ Naming Convention for int variables
+
+First the list of all int variable declarations:
+
+    cat -n althttpd.c | grep -P 'static int.*;'
+
+The int variables are used as follows:
+
+    # As length of an object
+    300 static int lenFile = 0;          /* Length of the zFile name */
+
+    # As count/number of items
+    321 static int nIn = 0;              /* Number of bytes of input */
+    322 static int nOut = 0;             /* Number of bytes of output */
+    329 static int nRequest = 0;         /* Number of requests processed */
+
+    # As boolean state
+    324 static int statusSent = 0;       /* True after status line is sent */
+    326 static int debugFlag = 0;        /* True if being debugged */
+
+    # As boolean setting
+    328 static int closeConnection = 0;  /* True to send Connection: close in reply */
+    330 static int omitLog = 0;          /* Do not make logfile entries if true */
+    331 static int useHttps = 0;         /* True to use HTTPS: instead of HTTP: */
+    333 static int useTimeout = 1;       /* True to use times */
+    334 static int standalone = 0;       /* Run as a standalone server (no inetd) */
+    335 static int ipv6Only = 0;         /* Use IPv6 only */
+    336 static int ipv4Only = 0;         /* Use IPv4 only */
+
+    # As max, min, index
+    339 static int mxAge = 120;          /* Cache-control max-age */
+    342 static int rangeStart = 0;       /* Start of a Range: request */
+    343 static int rangeEnd = 0;         /* End of a Range: request */
+    344 static int maxCpu = MAX_CPU;     /* Maximum CPU time per process */
+
+
+..
+
    346  /*
    347  ** Mapping between CGI variable names and values stored in
    348  ** global variables.
@@ -2688,3 +2735,12 @@ __ Naming Convention
   2591  INSERT INTO xref VALUES(610,'malloc() failed');
   2592  COMMIT;
   2593  #endif /* SQL */
+
+__ Vim Settings
+
+" Use the following for fold settings
+:setlocal foldmethod=marker
+:setlocal foldmarkers=__,..
+
+..
+
