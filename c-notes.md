@@ -38,7 +38,33 @@ A `static variable has block-scope and static storage duration.
 
         static int aLocalFunction() {...}
 
-- Explicitly define variables
+- Explicitly initialize variables
 
-        static int nIn = 0;
+        static int lenFile = 0;          /* Length of the zFile name */
+
+**Integer Variables names**
+
+- Prefix length of objects with `len`
+
+        static int lenFile = 0;          /* Length of the zFile name */
+
+- Prefix count of objects with `n`. Singular.
+
+        static int nRequest = 0;         /* Number of requests processed */
+
+- Boolean states and settings read well when prefix with `if`
+
+        # if status sent
+        static int statusSent = 0;       /* True after status line is sent */
+
+        # if use HTTPS
+        static int useHttps = 0;         /* True to use HTTPS: instead of HTTP: */
+
+        # if IP v6 only
+        static int ipv6Only = 0;         /* Use IPv6 only */
+
+- Prefix max, min values with max, min. No abbrievations.
+
+        static int maxCpu = MAX_CPU;     /* Maximum CPU time per process */
+
 
