@@ -1058,6 +1058,8 @@ const char *GetMimeType(const char *zName, int nName){
     { "m",          1, "text/plain"                        },
     { "m3u",        3, "audio/x-mpegurl"                   },
     { "man",        3, "application/x-troff-man"           },
+    { "md",         2, "text/plain"                        },
+    { "mdown",      5, "text/plain"                        },
     { "me",         2, "application/x-troff-me"            },
     { "mesh",       4, "model/mesh"                        },
     { "mid",        3, "audio/midi"                        },
