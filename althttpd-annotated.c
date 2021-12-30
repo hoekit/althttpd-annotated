@@ -1325,6 +1325,23 @@ The int variables are used as follows:
   1181    for(i=nName-1; i>0 && zName[i]!='.'; i--){}
   1182    z = &zName[i+1];
   1183    len = nName - i;
+
+__ Find start and length of file suffix
+
+Given:
+    zName is the name of the file.
+    nName is the length of the zName.
+
+The above code walks the string zName backwards, stopping when either a
+dot '.' is encountered or when it reaced the start of the string.
+
+z points to the char immediately after the dot '.' or to the second
+character of zName. The value of zName must begin with '/'.
+
+len stores the length of the suffix
+
+..
+
   1184    if( len<(int)sizeof(zSuffix)-1 ){
   1185      strcpy(zSuffix, z);
   1186      for(i=0; zSuffix[i]; i++) zSuffix[i] = tolower(zSuffix[i]);
@@ -1839,6 +1856,16 @@ The int variables are used as follows:
   1695    }else if( zProtocol[5]<'1' || zProtocol[7]<'1' ){
   1696      closeConnection = 1;
   1697    }
+
+__ zProtocol has values like 'HTTP/1.1'
+
+    The above will close the connection for:
+        HTTP/0.x
+        HTTP/1.0
+
+    In other words, HTTP/1.1 and above only.
+..
+
   1698  
   1699    /* This very simple server only understands the GET, POST
   1700    ** and HEAD methods
@@ -2495,6 +2522,46 @@ The int variables are used as follows:
   2351              close(connection);
   2352              return nErr;
   2353            }
+
+__ The else block appears to be doing the following:
+
+    # Make the child process stdin and stdout be the socket connection
+    # thus simplifying output - just use printf
+    # and input - just just fgets
+
+    close(0);                   // Close stdin
+    fd = dup(connection);       // 'connection' duplicated to child's stdin
+    if( fd!=0 ) nErr++;         // If fd is not stdin, incr error count
+
+    close(1);                   // Close stdout
+    fd = dup(connection);       // 'connection' duplicated to child's stdout
+    if( fd!=1 ) nErr++;         // If fd is not stdout, incr error count
+
+    close(connection);          // Close the socket file descriptor
+    return nErr;                // Return error count
+
+    # Perhaps using dup2() may be preferred because it's more concise
+    # and it's atomic - preventing possible race conditions.
+    # See: man 2 dup2
+
+From the Linux Programmer's Manual, man 2 dup:
+
+    dup, dup2, dup3 - duplicate a file descriptor
+
+    int dup(int oldfd);
+    # Returns (new) file descriptor on success, or -1 on error
+
+    The  dup()  system call creates a copy of the file descriptor oldfd,
+    using the lowest-numbered unused file descriptor for the new descriptor.
+
+    After a successful return, the old and new file  descriptors  may be
+    used  interchangeably.   They  refer  to the same open file
+    description (see open(2)) and thus share file offset and file status
+    flags; for example, if the file offset  is  modi‐ fied  by  using
+    lseek(2) on one of the file descriptors, the offset is also changed
+    for the other.
+..
+
   2354          }
   2355        }
   2356        /* Bury dead children */
@@ -2577,6 +2644,24 @@ The int variables are used as follows:
   2433      argv += 2;
   2434      argc -= 2;
   2435    }
+
+__ Parse command-line arguments
+
+The pattern is:
+
+    while( argc>1 && argv[1][0]=='-' ){
+        char *zOpt = argv[1];
+        char *zVal = argc>2 ? argv[2] : NULL;
+
+        // Match and handle each option/value pair e.g.
+        // if( strcmp(zOpt,"--user")==0 ){ ... }
+
+        argv += 2;          // Point to next opt/val pair
+        argc -= 2;          // Reduce left over arguments to process
+    }
+
+..
+
   2436    if( zRoot==0 ){
   2437      if( standalone ){
   2438        zRoot = ".";
@@ -2740,7 +2825,7 @@ __ Vim Settings
 
 " Use the following for fold settings
 :setlocal foldmethod=marker
-:setlocal foldmarkers=__,..
+:setlocal foldmarker=__,..
 
 ..
 
